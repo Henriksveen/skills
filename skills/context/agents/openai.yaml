@@ -1,0 +1,3 @@
+interface:
+  display_name: "Context"
+  short_description: "Shared project context that parallel threads load and add to"
