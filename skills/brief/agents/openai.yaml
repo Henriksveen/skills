@@ -1,0 +1,3 @@
+interface:
+  display_name: "Brief"
+  short_description: "Build task context in files that survive a fresh session"
