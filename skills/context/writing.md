@@ -1,6 +1,6 @@
 # Writing project context
 
-Read this file for `init` and `add`. Authorization, layout, claim types, sources, and correction approval are defined in [SKILL.md](SKILL.md).
+Read this file for `init` and `add`. Authorization, layout, claim types, sources, and correction approval are defined in `SKILL.md`.
 
 ## Integrate the authorized information
 

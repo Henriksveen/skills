@@ -1,6 +1,6 @@
 # Templates
 
-Copy the relevant fenced block and replace placeholders using known information. Remove unused topic sections. Follow [SKILL.md](SKILL.md) for claim types and sources, and [writing.md](writing.md) for edits.
+Copy the relevant fenced block and replace placeholders using known information. Remove unused topic sections. `SKILL.md` defines claim types and sources, and `writing.md` defines the editing rules.
 
 ## index.md
 
@@ -117,19 +117,27 @@ Updated: YYYY-MM-DD
 
 ## Purpose
 
-<!-- What the project does, who it is for, and why. Unknown until provided. -->
+<!-- What the project does, who it is for, and why. Unknown until provided.
+Example: Notes is a web app for small teams to share meeting notes. Source: user-provided summary, YYYY-MM-DD.
+-->
 
 ## Current state
 
-<!-- Short description of what exists. State the source and whether it was verified. -->
+<!-- Short description of what exists. State the source and whether it was verified.
+Example: Notes can be created, edited, and shared. Source: api/routes/notes.ts. Verified YYYY-MM-DD.
+-->
 
 ## Important constraints
 
-<!-- Project-wide requirements and preferences, with their origin. -->
+<!-- Project-wide requirements and preferences, with their origin.
+Example: The app must run on the current company laptop image. Source: user-provided requirement, YYYY-MM-DD.
+-->
 
 ## Current direction
 
-<!-- User intentions or accepted decisions. A planned change is not implemented behavior. Link to detail. -->
+<!-- User intentions or accepted decisions. A planned change is not implemented behavior. Link to detail.
+Example: Offline editing is planned. See .context/topics/sync.md. Implementation status not established.
+-->
 
 ## Open questions
 
@@ -149,7 +157,7 @@ Only invoke the context skill when the user requests it. Writes to the project c
 
 If you discover useful new context, you may suggest it in your reply:
 
-Context candidate: <claim>. Type: <current behavior, requirement or preference, proposal or hypothesis, open question, or decision>. Source: <code path, document, user statement, or conversation, with date>. Target: <project context file>.
+Context candidate: <text to save>. Type: <current behavior, requirement or preference, proposal or hypothesis, open question, or decision>. Source: <code path, document, user statement, or conversation, with date>. Target: <project context file>.
 
 Do not save the candidate unless the user explicitly asks. Avoid repeating suggestions.
 ```
