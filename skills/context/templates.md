@@ -1,26 +1,31 @@
 # Templates
 
-Copy the part between the markers when creating a file. Replace `<...>` placeholders. Delete HTML comments once a section has content.
+Copy the relevant fenced block. Replace placeholders using known information. Keep unknowns explicit and remove unused topic sections. Claim sources belong next to their claims; `Updated:` records file edits only.
 
 ## index.md
 
 ```md
 # Project context
 
-Read this file first. Load other files only when the task needs them.
-Only change `.context/` through the context skill.
+Updated: YYYY-MM-DD
+
+Read this index and `.context/overview.md` first. Load other files as needed.
+Project context changes require an explicit init or add request to the context skill.
+
+## Core
+
+- .context/overview.md: project purpose, important constraints, and current direction. Always load.
+- .context/decisions.md: explicit choices, reasons, and history. Load entries relevant to the subject.
 
 ## Topics
 
-<!-- - topics/<topic>.md: <what it covers>. Load when <situation>. -->
+<!-- One line per topic:
+- .context/topics/<topic>.md: <scope>. Load when <situation>.
+-->
 
-## Decisions
+## Other background
 
-- decisions.md: <n> decisions, latest <YYYY-MM-DD>.
-
-## Ideas
-
-<!-- - ideas/<idea>/: <one-line question>. Status: exploring | adopted | rejected | parked. Angles: <a>, <b>. -->
+<!-- Link to useful existing docs or context files without copying or relocating them. -->
 ```
 
 ## decisions.md
@@ -28,16 +33,20 @@ Only change `.context/` through the context skill.
 ```md
 # Decisions
 
-Newest first. Each entry says what was decided, why, and where it came from.
+Updated: YYYY-MM-DD
+
+Newest first. Accepted means chosen, not necessarily implemented. Keep superseded entries as history.
 
 <!-- Entry format:
 ## YYYY-MM-DD: <short title>
 
-<The decision in one or two sentences.>
-
-Why: <reason>.
-Source: <ideas/<idea>/ or a conversation summary>.
-Replaces: <earlier entry title, if any>.
+Status: accepted | superseded
+Decision: <what the user chose>.
+Why: <the user's reason>.
+Source: <user decision and date, supporting document, or available thread link>.
+Related context: .context/topics/<topic>.md
+Replaces: <link to earlier entry, only when applicable>.
+Superseded by: <link to replacement, only for a superseded entry>.
 -->
 ```
 
@@ -48,73 +57,73 @@ Replaces: <earlier entry title, if any>.
 
 Updated: YYYY-MM-DD
 
-<One or two sentences on what this topic covers.>
-
-## <Section>
-
-<!-- Facts, each with a code path where it applies. Use as many sections as the subject needs. -->
-
-## References
-
-<!-- - assets/<file>: what it shows -->
-<!-- - path/to/code: why it matters -->
-```
-
-## ideas/<idea>/overview.md
-
-```md
-# <Idea>
-
-Status: exploring
-Updated: YYYY-MM-DD
-
-## Question
-
-<What we want to find out. What would make this idea worth doing?>
+<What this topic covers.>
 
 ## Background
 
-<Why this came up. Links to relevant topics.>
+<!-- Explanations and examples needed to understand the subject. Cite sources. -->
 
-## Angles
+## Current behavior
 
-<!-- - <angle>.md: <the view this angle takes>. -->
+<!-- Example:
+- Each save makes a PUT request. Source: api/routes/notes.ts, updateNote. Verified YYYY-MM-DD.
+- Large notes sometimes time out. Source: user report, YYYY-MM-DD. Unverified against code.
+-->
 
-## Comparison
+## Requirements and preferences
 
-<!-- Filled by conclude: what each angle found, where they agree, where they differ. -->
+<!-- Example:
+- Offline reading is required. Source: user-provided requirement, YYYY-MM-DD. Implementation status not established.
+-->
 
-## Outcome
+## Proposals and hypotheses
 
-<!-- Filled by conclude: adopted | rejected | parked, and why. -->
-```
-
-## ideas/<idea>/<angle>.md
-
-```md
-# <Idea>: <angle>
-
-Updated: YYYY-MM-DD
-
-## Approach
-
-<The view this angle takes and how it would work.>
-
-## Findings
-
-<!-- What was learned, with evidence: code paths, measurements, links, assets. -->
-
-## Trade-offs
-
-<!-- What this approach gains and what it costs. -->
+<!-- Example:
+- A local edit queue could support offline writes. Proposal, not chosen. Source: technical exploration summarized by the user, YYYY-MM-DD.
+- Batching might reduce rate-limit errors. Unverified hypothesis. Source: discussion, YYYY-MM-DD.
+-->
 
 ## Open questions
 
-<!-- - [ ] question -->
+<!-- Questions that remain unresolved. -->
 
-## Context candidates
+## Related decisions
 
-<!-- - <fact or decision>. Target: <file>. -->
+<!-- Links to relevant headings in .context/decisions.md. Do not duplicate full entries. -->
+
+## References
+
+<!-- Use repo-relative paths. Mark missing attachments pending, not saved.
+- .context/assets/<file>: <what it shows and why it matters>.
+-->
+```
+
+## overview.md
+
+```md
+# Project overview
+
+Updated: YYYY-MM-DD
+
+## Purpose
+
+<!-- What the project does, who it is for, and why. Unknown until provided. -->
+
+## Current state
+
+<!-- Short description of what exists. State the source and whether it was verified. -->
+
+## Important constraints
+
+<!-- Project-wide requirements and preferences, with their origin. -->
+
+## Current direction
+
+<!-- User intentions or accepted decisions. A planned change is not implemented behavior. Link to detail. -->
+
+## Open questions
+
+- What project background should new threads know? Not yet provided.
 ```
 
 ## AGENTS.md snippet
@@ -122,9 +131,15 @@ Updated: YYYY-MM-DD
 ```md
 ## Project context
 
-Background on this project lives in `.context/`. When a task needs it, read `.context/index.md` and load the files it points to.
+Shared project background lives in `.context/`. When a task needs it, read `.context/index.md` and `.context/overview.md`, then load relevant topics, decisions, and linked material. Report missing core files rather than creating them during a read.
 
-Do not edit anything in `.context/` unless the user invokes the context skill. If you learn something that belongs there, end your reply with:
+Distinguish current behavior, user requirements, proposals, open questions, and decisions. A proposal is not a decision; an accepted decision is not evidence of implementation. Report apparent disagreements with code instead of silently rewriting context.
 
-Context candidate: <the fact or decision in one sentence>. Target: <file in .context/>.
+Only invoke the context skill when the user requests it. Writes to the project context files listed in `.context/index.md` require an explicit init or add request for that operation. Loading, reviewing, or suggesting context never authorizes writes or ongoing note-taking. Links to supporting documents do not authorize edits to those documents.
+
+If you discover useful new context, you may suggest it in your reply:
+
+Context candidate: <claim, including whether it is a fact, requirement, or proposal>. Target: <project context file>.
+
+Do not save the candidate unless the user explicitly asks. Avoid repeating suggestions.
 ```

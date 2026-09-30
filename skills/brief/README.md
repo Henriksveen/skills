@@ -2,9 +2,9 @@
 
 A skill for building up the context for a task over several sessions, then handing it to an agent to execute.
 
-The context lives in `.context/briefs/<slug>/` in the repo. You add to it while you think, research, and discuss. When the chat gets long or messy, you run a handoff, start a new session, and load the brief. Nothing important is lost, because nothing important lives only in the chat.
+The context lives in `.briefs/<slug>/` in the repo. You add to it while you think, research, and discuss. When the chat gets long or messy, you run a handoff, start a new session, and load the brief. Nothing important is lost, because nothing important lives only in the chat.
 
-A brief covers one task. For knowledge about the whole project that many tasks and threads share, use the `context` skill. A brief links to its topics instead of copying them.
+A brief covers one task and can link to existing supporting documents. You can specify another location, including the path to an existing brief.
 
 ## Commands
 
@@ -12,7 +12,7 @@ You don't need exact wording. These phrases trigger the skill:
 
 | You say | Mode | What happens |
 | --- | --- | --- |
-| `new brief <slug>` | new | Creates `.context/briefs/<slug>/` with `brief.md`, `assets/`, `notes/`, and fills in what you have said so far. |
+| `new brief <slug>` | new | Creates `.briefs/<slug>/` with `brief.md`, `assets/`, `notes/`, and fills in what you have said so far. |
 | `add to brief: ...` | add | Puts the information in the right section and rewrites anything it makes outdated. |
 | `handoff` | handoff | Copies everything important from the chat into the brief and prints the prompt for the next session. |
 | `load brief <slug>` | load | Reads the brief, notes, images, and referenced code, then summarizes and lists gaps. |
@@ -30,7 +30,7 @@ You start a session and talk through the problem the way you normally would:
 The agent asks whether briefs should be committed or ignored (first time only), then creates:
 
 ```
-.context/briefs/invoice-pdf-queue/
+.briefs/invoice-pdf-queue/
   brief.md
   assets/
   notes/
@@ -49,7 +49,7 @@ It fills in Goal, Current state, and Desired change from your message and puts t
 
 > add to brief: this is the latency for the last 30 days. The spikes are month-end billing runs.
 
-The agent cannot save a pasted image to disk, so it does two things. It writes a description into Current state ("p95 is about 8 s on normal days and 25 to 30 s on the 1st of each month during billing runs, see assets/latency-30d.png"). Then it asks you to save the screenshot as `.context/briefs/invoice-pdf-queue/assets/latency-30d.png`. You save it. Next session, the agent can look at the real image, and the text description still works for agents that can't.
+The agent cannot save a pasted image to disk, so it does two things. It writes a description into Current state ("p95 is about 8 s on normal days and 25 to 30 s on the 1st of each month during billing runs, see assets/latency-30d.png"). Then it asks you to save the screenshot as `.briefs/invoice-pdf-queue/assets/latency-30d.png`. You save it. Next session, the agent can look at the real image, and the text description still works for agents that can't.
 
 **Add an explanation.** You want the agent to understand how rendering works, so you ask it to look:
 
@@ -126,6 +126,6 @@ The session runs out of room before the endpoint change is done. You type `hando
 - **Talk freely, then add.** You don't need to write the brief yourself. Explain things in the chat the way you normally would, and say "add that to the brief" when something is worth keeping.
 - **Hand off early.** Run `handoff` when the chat starts to drift, not when it is full. A handoff done late has less room to work with.
 - **Read the brief now and then.** It is a normal markdown file. Edit it by hand if the agent got something wrong. Hand edits are just as valid as agent edits.
-- **Keep durable knowledge out of the brief.** `notes/pdf-rendering.md` explains a module that other tasks will need too. The agent suggests it as a context candidate, and you add it to the project context with `add to context` from the context skill.
+- **Reuse useful explanations.** `notes/pdf-rendering.md` explains a module that other tasks may need too. You can choose to document its useful parts in the project's existing docs, then link to them from the brief. Execution and handoffs do not authorize edits to those docs.
 - **Use it with sub-agents.** Tell a sub-agent to "load brief invoice-pdf-queue" instead of writing a long prompt for it. It gets the same context the main agent has.
 - **Close it out.** When the task is done, set `Status: done`. Delete the folder, or keep it as a record of why decisions were made.

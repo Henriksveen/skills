@@ -1,138 +1,141 @@
 # context
 
-Shared context for a whole project, stored in `.context/` in the repo. Any number of threads can load it, explore ideas on top of it, and add what they learn. You decide what gets added. Agents only suggest.
+A user-controlled record of project knowledge in `.context/`. Many tasks and threads can load it. You choose which explanations, discoveries, ideas, and decisions to save.
 
-Use the `brief` skill for context that belongs to one task. Briefs live in `.context/briefs/` and can link to the topics here.
+The skill supports `init`, `load`, and `add`. Exploration happens in ordinary conversations. There is no automatic note-taking or exploration lifecycle.
 
-## Commands
+## Requests
 
-The skill runs only when you invoke it.
+These are natural-language requests, not registered slash commands. Explicitly request the context skill when saving or loading.
 
 | You say | What happens |
 | --- | --- |
-| `init context` | Creates `.context/` and adds a short section to AGENTS.md. Can draft first topics from the codebase. |
-| `load context [topics or task]` | Reads the index and the topics you name, or picks the ones relevant to the task. |
-| `add to context: ...` | Puts the information in the right file. Asks first if it contradicts or removes existing text. |
-| `explore <idea> [angle]` | Starts an exploration. This thread gets its own angle file and keeps it current. |
-| `conclude <idea>` | Compares all angles, records the outcome and decision, and asks which findings to add to the shared context. |
+| `Init context` | Creates the core files and adds the AGENTS.md reference. Preserves existing files. |
+| `Load context` | Loads the index and overview, then lists available topics. |
+| `Load context for exploring offline support` | Also loads relevant topics and decision entries, and reports which ones. |
+| `Add to context: ...` | Integrates the requested information with its type and source. |
+| `Use the context skill to save the background I explained earlier` | Extracts the requested background from the available conversation and saves it. |
+| `Use the context skill to suggest what is worth saving from this conversation` | Proposes additions in the reply. Writes nothing until you select them. |
 
-## What goes where
+An invocation authorizes only the requested operation. `Load context` never grants permission to save later findings. You can edit the markdown files yourself too.
 
-```
+## Layout
+
+```text
 .context/
-  index.md                  one line per file. Every thread reads this first.
-  decisions.md              what was decided, when, and why
-  topics/                   lasting knowledge: architecture, domain, constraints, product direction
-  ideas/<idea>/overview.md  the question, the list of angles, the comparison, the outcome
-  ideas/<idea>/<angle>.md   one thread's view on the idea
-  assets/                   images and diagrams
-  briefs/                   task briefs from the brief skill
+  index.md          descriptions of available context and when to load it
+  overview.md       short project introduction, constraints, and current direction
+  topics/           subject-specific explanations, facts, requirements, and proposals
+  decisions.md      explicit choices, reasons, sources, and superseded history
+  assets/           screenshots, diagrams, supporting files
 ```
 
-Topics hold what is true about the project. Ideas hold what is being considered. When an idea is concluded, the parts that turned out to be true move into topics and `decisions.md`.
+A topic can contain both current behavior and future ideas, in clearly marked sections. "We are considering offline support" must stay distinct from "offline support is implemented" and "we decided to implement it."
 
-## Example: exploring offline mode for a notes app
+## Example: exploring offline support for a notes app
 
-### Thread 1: set up the shared context
+All details and paths below are illustrative.
 
-> init context
+### Set up and save the initial background
 
-The agent creates `.context/` and adds this to AGENTS.md:
+In a thread in your application repo:
+
+> Init context.
+
+The agent creates the core files and adds a reference in AGENTS.md. It asks before creating AGENTS.md if one does not exist. It offers to draft initial background from your conversation, docs, or code. You can review those drafts before requesting a save.
+
+You explain the project and current sync behavior, then ask:
+
+> Use the context skill to save the background I explained. This is a mobile notes app for individual users. Saves currently go straight to the API. Offline reading is required; offline editing is still an idea. Include the data-flow diagram I attached.
+
+The agent saves the project introduction in `overview.md` and subject detail in `topics/sync.md`, then adds that topic to the index. It separates the information:
 
 ```md
-## Project context
-Background on this project lives in `.context/`. When a task needs it, read `.context/index.md` and load the files it points to.
-Do not edit anything in `.context/` unless the user invokes the context skill. ...
+## Current behavior
+
+- Saves go directly to the API. Source: user report, 2026-09-30. Unverified against code.
+
+## Requirements and preferences
+
+- Users must be able to read notes offline. Source: user-provided requirement, 2026-09-30. Implementation status not established.
+
+## Proposals and hypotheses
+
+- Offline editing is under consideration. No approach has been chosen. Source: user discussion, 2026-09-30.
 ```
 
-It asks whether to draft topics from the code. You say yes. Sub-agents read the repo, and the agent shows you drafts of `topics/architecture.md` (React Native client, REST API, Postgres) and `topics/sync.md` (how the client fetches and saves notes today). You fix one mistake and it writes them.
+It includes a text description of the diagram. If it can access the attachment's bytes, it saves them in `assets/`. Otherwise it asks you to save the file and marks the reference pending. It does not claim the file exists before checking.
 
-You paste a diagram of how notes move between client and server:
+### Open parallel threads with the same background
 
-> add to context: this is the current data flow. Every save is a direct PUT to the API.
+In thread A:
 
-The agent describes the diagram in `topics/sync.md` and asks you to save the image as `.context/assets/data-flow.png`. You do.
+> Load context for exploring offline editing. Then assess a CRDT approach, especially conflict handling and library costs.
 
-### Threads 2 and 3: explore two views at the same time
+In thread B:
 
-You open two new threads in the same checkout.
+> Load context for exploring offline editing. Then assess a local edit queue that replays requests when online.
 
-Thread 2:
+Both threads load the overview and sync topic. They discuss approaches normally. The context skill creates no thread files and records no findings automatically.
 
-> explore offline-mode from the crdt angle. Can we make notes editable offline and merge edits with a CRDT library?
+### Save a discovery when you choose
 
-The agent creates `ideas/offline-mode/overview.md` with the question and adds the idea to `index.md` as `exploring`. It creates `ideas/offline-mode/crdt.md` for this thread, then loads the index, `topics/architecture.md`, `topics/sync.md`, and the diagram.
+Thread B finds a rate limit in the API and suggests:
 
-Thread 3:
-
-> explore offline-mode from the sync-queue angle. Queue edits locally and replay them when the device is back online.
-
-The overview already exists, so the agent adds `sync-queue.md` to its Angles list and creates the angle file. It does not read `crdt.md`, so this thread's view stays independent.
-
-Both threads now work: they read code, try libraries, and write small prototypes. Each keeps its own angle file up to date with findings, trade-offs, and open questions. They never write to the same file, except for the one-line additions to the overview and index, and those re-read the file right before editing.
-
-### A finding that affects the whole project
-
-While testing, thread 3 finds that the API rate limits each user to 100 requests per minute. A replayed queue would hit that limit. The agent ends its reply with:
-
-```
-Context candidate: The API rate limits each user to 100 requests per minute (api/middleware/rate-limit.ts). Target: topics/architecture.md.
+```text
+Context candidate: The API limits each user to 100 requests per minute, verified in api/middleware/rate-limit.ts. Target: .context/topics/sync.md.
 ```
 
-It also writes this under "Context candidates" in `sync-queue.md`. You think it matters beyond this idea, so you type in thread 3:
+Nothing is saved. You decide this matters across tasks:
 
-> add to context: the rate limit candidate
+> Add to context: the rate-limit candidate. Include the code location and verification date.
 
-The agent re-reads `topics/architecture.md`, adds the fact to the API section with "(from ideas/offline-mode)", and updates the `Updated:` date.
+The agent integrates the fact into `topics/sync.md` and reports the change. Its permission to write ends with that operation.
 
-Thread 2 is still running and doesn't know about this yet. You type there:
+Thread A still has the earlier context in its conversation. To give it the discovery:
 
-> load context architecture
+> Load context sync again and reconsider the request-volume trade-off.
 
-Thread 2 reads the updated topic and notes in `crdt.md` that the CRDT approach sends fewer requests.
+The agent re-reads the file. Sharing a checkout does not automatically refresh a running thread's knowledge.
 
-### Wrong information in the shared context
+### Preserve ideas without choosing one
 
-Thread 2 finds that `topics/sync.md` says saves are debounced by 500 ms, but the code no longer does that. It suggests a candidate. You type `add to context: that correction`. Because this changes existing text, the agent shows the old and new lines and waits for your confirmation before writing.
+After discussing the edit queue in thread B:
 
-### Thread 4: conclude
+> Use the context skill to save the queue proposal and its trade-offs. Exclude the prototype details. We have not chosen an approach.
 
-A few days later, in a new thread:
+The agent saves the selected material under Proposals and hypotheses. It preserves useful explanations and evidence. It does not create a decision.
 
-> conclude offline-mode
+In thread A, you can make the same request for the CRDT proposal. Because both threads share the checkout, additions use targeted edits after a fresh read. Overlapping changes that cannot be reconciled require your input.
 
-The agent reads the overview and both angle files and writes a comparison into the overview. The CRDT approach handles conflicts better but adds 180 KB to the app bundle. The sync queue is simpler but needs batching because of the rate limit. It asks for the outcome. You answer:
+### Review what to keep before starting fresh
 
-> adopted, sync-queue with batching. The bundle size matters more than rare conflicts right now.
+> Use the context skill to suggest useful project context from this conversation.
 
-The agent:
+The agent shows a numbered list of proposed additions with their types, sources, and target files. You respond:
 
-- sets the idea to `adopted` in `overview.md` and `index.md`
-- adds an entry to `decisions.md`:
+> Add items 1 and 3 to context. Keep item 3 as an unverified hypothesis.
 
-  ```md
-  ## 2026-10-02: Offline mode uses a local sync queue with batched replay
+Only those items are saved. You can now start a fresh thread and load them. You do not have to finish the exploration or choose an outcome first.
 
-  Edits are queued on the device and replayed in batches when online.
+### Record a choice later
 
-  Why: the CRDT library adds 180 KB to the bundle, and conflicts are rare for single-user notes.
-  Source: ideas/offline-mode/
-  ```
+Once you have compared the saved proposals:
 
-- lists the remaining context candidates from both angle files and asks which to add. You pick two. It adds them to `topics/sync.md`.
+> Add to context: we chose a local edit queue with batched replay. It fits the current API and avoids a heavier client dependency. This is a decision, not an implemented feature.
 
-### Later: a task that uses the context
+The agent adds a dated entry with the reason and source to `decisions.md` and links it from the sync topic. The prior proposal becomes a reference to the accepted decision. If you replace that decision later, the earlier entry stays as superseded history.
 
-Weeks later you start a thread to build the feature:
+### Reuse the accumulated context
 
-> load context for implementing offline sync
+Weeks later:
 
-The agent reads the index, picks `topics/sync.md`, `topics/architecture.md`, and the offline-mode decision, and summarizes them in five lines. It already knows about the rate limit, the batching decision, and why CRDTs were rejected, without you explaining any of it again. For a long task you can create a brief with the brief skill that links to these topics.
+> Load context for implementing offline sync.
 
-## Tips
+The new thread gets the project overview, relevant sync background, the rate limit, and the decision with its reason. It reports what it loaded and distinguishes saved plans from verified code behavior.
 
-- **Load only what the thread needs.** The index exists so a thread doesn't have to read everything. As the context grows, this keeps each thread's context small.
-- **Reload after an add.** Threads that were already running don't see changes made by other threads. Run `load context <topic>` again when a running thread needs them.
-- **Keep angles independent until you conclude.** If you want a thread to see another view, ask it to read that angle file directly.
-- **Read and edit the files yourself.** They are plain markdown in git. Hand edits are as valid as agent edits, and `git log .context/` shows how the project's understanding changed.
-- **Park ideas instead of deleting them.** A parked idea keeps its findings. Starting it again later is a new `explore` on the same idea with a new angle.
+## Corrections and existing context
+
+If loaded context disagrees with code, the agent reports the mismatch without editing. Ask it to save a correction when you choose. If the exact replacement is not already authorized, it shows the old and proposed text before writing.
+
+Existing docs and context files remain useful. Link to them rather than duplicating them. If you already have files from the older exploration layout, the skill preserves them. Moving their selected content into topics requires an explicit request.

@@ -1,24 +1,24 @@
 ---
 name: brief
-description: Build up the context for one task in a file that outlives the chat session. Use when the user wants to start, add to, load, or hand off a brief, or says things like "new brief", "add this to the brief", "handoff", "load brief". For project-wide context, the context skill is the right one.
+description: Build up the context for one task in a file that outlives the chat session. Use when the user wants to start, add to, load, or hand off a brief, or says things like "new brief", "add this to the brief", "handoff", "load brief".
 ---
 
 A brief is a folder of files that holds everything an agent needs to do one task. The files are the source of truth. The chat is temporary. Anything that matters must end up in the brief, because the next session only sees what is written there.
 
-Knowledge about the whole project lives in `.context/topics/` and `.context/decisions.md`, managed by the context skill. A brief links to those files instead of copying them.
+Manage the selected brief's files under the modes below. Link to supporting documents when useful; those links do not authorize edits to the documents.
 
 ## Layout
 
 ```
-.context/briefs/<slug>/
+.briefs/<slug>/
   brief.md     the brief itself, based on template.md in this skill's folder
   assets/      images, screenshots, diagrams, log excerpts, sample data
   notes/       longer write-ups that brief.md links to (concept explanations, module walkthroughs)
 ```
 
-`<slug>` is a short kebab-case name for the task, such as `invoice-pdf-queue`. `.context/` sits at the repo root. If the user names another location, use it.
+`<slug>` is a short kebab-case name for the task, such as `invoice-pdf-queue`. `.briefs/` sits at the repo root. If the user names another location, use it, including for existing briefs.
 
-Picking the brief: use the slug the user gives. If they give none and the conversation already uses a brief, use that one. If `.context/briefs/` holds exactly one brief, use it. Otherwise list the briefs and ask.
+Picking the brief: use the slug the user gives. If they give none and the conversation already uses a brief, use that one. If `.briefs/` holds exactly one brief, use it. Otherwise list the briefs and ask.
 
 ## Modes
 
@@ -27,10 +27,10 @@ The user's wording decides the mode. If it is unclear, ask.
 ### new
 
 1. Ask for a slug if the user did not give one. Suggest one based on the task.
-2. The first time you create `.context/briefs/` in a repo, ask whether briefs should be committed or added to `.gitignore`.
+2. The first time you create `.briefs/` in a repo, ask whether briefs should be committed or added to `.gitignore`.
 3. Create the folder layout and fill `brief.md` from `template.md`.
 4. Fill in what the user has already said in this conversation. Leave sections empty rather than guessing. Put anything unknown under "Open questions".
-5. If `.context/index.md` exists, read it and add links to the relevant topics and decisions under "References".
+5. Add links under "References" to supporting documents the user supplied or that you used to prepare the brief. Do not assume a particular documentation layout.
 6. Show the user the brief and list the empty sections.
 
 ### add
@@ -47,7 +47,7 @@ The user gives new information: text, an image, a file path, a decision, a corre
 
 Images: an image pasted into the chat exists only in this conversation. You cannot save its bytes to disk. Do two things:
 - Write a text description of what the image shows, and what it means for the task, into the relevant section. The description must be useful on its own, because some future agent may not be able to view images.
-- Ask the user to save the file as `.context/briefs/<slug>/assets/<name>.png`, suggest a name, and add the reference `assets/<name>.png` to "References".
+- Ask the user to save the file as `.briefs/<slug>/assets/<name>.png`, suggest a name, and add the reference `assets/<name>.png` to "References".
 
 If the user gives a file path to an image, copy it into `assets/` and describe it the same way.
 
@@ -66,7 +66,7 @@ Test the result by asking yourself: could an agent with no access to this chat d
 
 ### load
 
-1. Read `brief.md`, every file in `notes/` it links to, every image in `assets/`, and the `.context/` topics and decisions it links to.
+1. Read `brief.md`, every file in `notes/` it links to, every image in `assets/`, and supporting documents in "References". Report missing files rather than creating them.
 2. Open the code locations it references, enough to confirm they still exist and match the description. If the code has changed, say so.
 3. Reply with a summary of five lines or fewer: the goal, the current state, the next step. Then list open questions and anything that looks inconsistent or out of date.
 4. Do not start the work until the user says to, unless the load request already told you to continue.
@@ -80,7 +80,7 @@ While working after a load, keep "Progress" current. Update it when a step is do
 - Every decision gets a reason. A decision without a reason is the first thing a later session will undo.
 - Mark things you have not verified with "(unverified)". Mark guesses with "(assumption)".
 - Keep `brief.md` under about 200 lines. Move detail into `notes/`.
-- Knowledge that is useful beyond this task, such as how a module works, belongs in the project context. Suggest it with the context candidate format, `Context candidate: <fact>. Target: <file in .context/>.`, and do not write it there yourself. The user adds it with the context skill.
+- Knowledge that is useful beyond this task, such as how a module works, may belong in existing project documentation. You may suggest documenting it there, but do not move it or edit those documents without an explicit request.
 - Never drop information silently. Remove text only when it is wrong or superseded, and tell the user.
 
 ## Related
