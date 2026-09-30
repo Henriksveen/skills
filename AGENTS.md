@@ -10,7 +10,7 @@ Keep user-facing skill guides in `docs/<skill-name>.md`. Skill folders should co
 
 ## Task-specific guidance
 
-- For user-controlled project knowledge, see [context](skills/context/SKILL.md).
+- For user-controlled project context, see [context](skills/context/SKILL.md).
 - For stress-testing plans through questions, see [grilling](skills/grilling/SKILL.md).
 - For writing and editing prose, follow [unslop](skills/unslop/SKILL.md).
 

@@ -1,6 +1,6 @@
 # Templates
 
-Copy the relevant fenced block. Replace placeholders using known information. Keep unknowns explicit and remove unused topic sections. Claim sources belong next to their claims; `Updated:` records file edits only.
+Copy the relevant fenced block and replace placeholders using known information. Remove unused topic sections. Follow [SKILL.md](SKILL.md) for claim types and sources, and [writing.md](writing.md) for edits.
 
 ## index.md
 
@@ -47,6 +47,16 @@ Source: <user decision and date, supporting document, or available thread link>.
 Related context: .context/topics/<topic>.md
 Replaces: <link to earlier entry, only when applicable>.
 Superseded by: <link to replacement, only for a superseded entry>.
+-->
+
+<!-- Example:
+## YYYY-MM-DD: Queue offline edits locally
+
+Status: accepted
+Decision: Queue edits on the device and replay them in batches when online.
+Why: It fits the current API and avoids a heavier client dependency.
+Source: user decision, YYYY-MM-DD.
+Related context: .context/topics/sync.md
 -->
 ```
 
@@ -123,7 +133,7 @@ Updated: YYYY-MM-DD
 
 ## Open questions
 
-- What project background should new threads know? Not yet provided.
+- What project context should new threads know? Not yet provided.
 ```
 
 ## AGENTS.md snippet
@@ -131,15 +141,15 @@ Updated: YYYY-MM-DD
 ```md
 ## Project context
 
-Shared project background lives in `.context/`. When a task needs it, read `.context/index.md` and `.context/overview.md`, then load relevant topics, decisions, and linked material. Report missing core files rather than creating them during a read.
+Shared project context lives in `.context/`. When a task needs it, read `.context/index.md` and `.context/overview.md`, then load relevant topics, decisions, and linked material. Report missing core files rather than creating them during a read.
 
-Distinguish current behavior, user requirements, proposals, open questions, and decisions. A proposal is not a decision; an accepted decision is not evidence of implementation. Report apparent disagreements with code instead of silently rewriting context.
+Distinguish current behavior, requirements and preferences, proposals and hypotheses, open questions, and decisions. A proposal is not a decision; an accepted decision is not evidence of implementation. Report apparent disagreements with code instead of silently rewriting context.
 
 Only invoke the context skill when the user requests it. Writes to the project context files listed in `.context/index.md` require an explicit init or add request for that operation. Loading, reviewing, or suggesting context never authorizes writes or ongoing note-taking. Links to supporting documents do not authorize edits to those documents.
 
 If you discover useful new context, you may suggest it in your reply:
 
-Context candidate: <claim, including whether it is a fact, requirement, or proposal>. Target: <project context file>.
+Context candidate: <claim>. Type: <current behavior, requirement or preference, proposal or hypothesis, open question, or decision>. Source: <code path, document, user statement, or conversation, with date>. Target: <project context file>.
 
 Do not save the candidate unless the user explicitly asks. Avoid repeating suggestions.
 ```

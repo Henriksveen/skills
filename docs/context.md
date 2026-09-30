@@ -1,8 +1,8 @@
 # context
 
-A user-controlled record of project knowledge in `.context/`. Many tasks and threads can load it. You choose which explanations, discoveries, ideas, and decisions to save.
+A user-controlled record of project context in `.context/`. Many tasks and threads can load it. You choose which explanations, discoveries, ideas, and decisions to save.
 
-The skill supports `init`, `load`, and `add`. Exploration happens in ordinary conversations. There is no automatic note-taking or exploration lifecycle.
+The skill supports `init`, `load`, `add`, and `suggest`. Exploration happens in ordinary conversations. There is no automatic note-taking or exploration lifecycle.
 
 ## Requests
 
@@ -83,7 +83,7 @@ Both threads load the overview and sync topic. They discuss approaches normally.
 Thread B finds a rate limit in the API and suggests:
 
 ```text
-Context candidate: The API limits each user to 100 requests per minute, verified in api/middleware/rate-limit.ts. Target: .context/topics/sync.md.
+Context candidate: The API limits each user to 100 requests per minute. Type: current behavior, verified 2026-09-30. Source: api/middleware/rate-limit.ts. Target: .context/topics/sync.md.
 ```
 
 Nothing is saved. You decide this matters across tasks:
