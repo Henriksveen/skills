@@ -14,7 +14,6 @@ Select skills with Space, press Enter, then choose **Project** or **Global**. In
 
 ## Available skills
 
-- [brief](docs/brief.md): Task context and session handoffs.
 - [context](docs/context.md): Shared project knowledge.
 - [grilling](skills/grilling/SKILL.md): Stress-test plans through questions.
 - [unslop](skills/unslop/SKILL.md): Remove AI writing patterns.
