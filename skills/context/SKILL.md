@@ -1,6 +1,6 @@
 ---
 name: context
-description: Stores and retrieves user-controlled project context in .context/, including an overview, topic files, and a decisions log. Keeps current behavior, requirements, proposals, open questions, and decisions separate, with sources. Renders the folder as an HTML report with a context graph. Use ONLY when the user explicitly requests the context skill, for example "init context", "load context", "add to context", "suggest context to save", or "render context". Never invoke it merely because a thread explores an idea.
+description: Stores and retrieves user-controlled project context in .context/, including an overview, topic files, and a decisions log. Keeps current behavior, requirements, proposals, open questions, and decisions separate, with sources. Renders the folder as a browsable HTML report. Use ONLY when the user explicitly requests the context skill, for example "init context", "load context", "add to context", "suggest context to save", or "render context". Never invoke it merely because a thread explores an idea.
 ---
 
 `.context/` holds project context that tasks and threads share.

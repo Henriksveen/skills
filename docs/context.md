@@ -16,7 +16,7 @@ These are natural-language requests, not registered slash commands. Explicitly r
 | `Add to context: ...` | Integrates the requested information with its type and source. |
 | `Use the context skill to save the background I explained earlier` | Extracts the requested background from the available conversation and saves it. |
 | `Use the context skill to suggest what is worth saving from this conversation` | Proposes additions in the reply. Writes nothing until you select them. |
-| `Render context` | Writes an HTML report of `.context/` with a context graph. Changes no context files. |
+| `Render context` | Writes an HTML report of `.context/`. Changes no context files. |
 
 An invocation authorizes only the requested operation. `Load context` never grants permission to save later findings. You can edit the markdown files yourself too.
 
@@ -135,7 +135,7 @@ Weeks later:
 
 The new thread gets the project overview, relevant sync background, the rate limit, and the decision with its reason. It reports what it loaded and distinguishes saved plans from verified code behavior.
 
-## HTML report and context graph
+## HTML report
 
 `skills/context/scripts/render.mjs` turns a `.context/` folder into one HTML file. Ask an agent to `render context`, or run the script yourself from the project root with Node 18 or newer:
 
@@ -156,22 +156,18 @@ The report contains:
 - Search across all pages. Press `/` to focus it.
 - Light and dark themes, and a print layout.
 
-### The graph
+### Connections
 
-Nodes are the overview, topics, individual decision entries, other context documents, assets, and repository files that the context references. Clicking a node opens its page, and opening a page selects its node. Each page ends with a Connections list that shows the passage behind every link.
+Each page ends with a Connections list. It shows the topics, decisions, documents, and files that link to or from the page, with the passage behind each link. Links come only from what the files record:
 
-Edges come only from what the files record:
-
-| Edge | Source |
+| Link | Source |
 | --- | --- |
 | References | A Markdown link or a plain repo path, such as `api/routes/notes.ts`, in any context file. |
 | Related context | A decision's `Related context:` field. |
 | Supersedes | A decision's `Replaces:` or `Superseded by:` field. |
 | Mentions | A file that names a decision's title without linking to it. |
 
-Links from the index to its topics are left out, because they would connect the index to everything. A link to `.context/decisions.md#<heading-anchor>` points at that decision entry. A link to a missing file shows as a dashed red node and a diagnostic.
-
-You can filter node types, drag nodes, zoom, and pan. Focus shows only the selected node and its neighbors. The expand button gives the graph the full window.
+Links from the index to its topics are left out. A link to `.context/decisions.md#<heading-anchor>` points at that decision entry. Clicking a referenced repository file opens a page that lists where the context cites it. A link to a missing file is struck through in red and listed under diagnostics.
 
 ## Corrections and existing context
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Renders a project's .context/ folder as one self-contained HTML report with a context graph.
+// Renders a project's .context/ folder as one self-contained HTML report.
 // No dependencies. Requires Node 18 or newer.
 
 import fs from 'node:fs';
@@ -83,7 +83,7 @@ function main() {
   const s = data.stats;
   console.log(
     `Wrote ${path.relative(process.cwd(), output) || output}: ${s.topics} topics, ${s.decisions} decisions, ` +
-    `${s.questions} open questions, ${data.graph.nodes.length} graph nodes, ${data.diagnostics.length} diagnostics.`,
+    `${s.questions} open questions, ${data.diagnostics.length} diagnostics.`,
   );
   for (const d of data.diagnostics) {
     const text = d.message.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
@@ -116,7 +116,7 @@ function build({ contextDir, repoRoot, output, title }) {
   const topicFiles = mdFiles.filter((f) => isInside(f, topicsDir));
   const docFiles = mdFiles.filter((f) => !Object.values(core).includes(f) && !topicFiles.includes(f));
 
-  const graph = new Graph();
+  const links = new LinkIndex();
   const pages = {};
   const diagnostics = [];
   const brokenSeen = new Set();
@@ -136,10 +136,10 @@ function build({ contextDir, repoRoot, output, title }) {
   const decisionBySlug = new Map();
   for (const entry of decisionLog.entries) {
     let id = 'decision:' + entry.slug;
-    for (let n = 2; graph.nodes.has(id); n++) id = `decision:${entry.slug}-${n}`;
+    for (let n = 2; links.nodes.has(id); n++) id = `decision:${entry.slug}-${n}`;
     entry.id = id;
     decisionBySlug.set(entry.slug, id);
-    graph.node(id, { kind: 'decision', label: entry.title, status: entry.status, date: entry.date });
+    links.node(id, { kind: 'decision', label: entry.title, status: entry.status, date: entry.date });
   }
 
   const idForPath = (abs, anchor) => {
@@ -185,9 +185,9 @@ function build({ contextDir, repoRoot, output, title }) {
   };
 
   const registerTarget = (res) => {
-    if (graph.nodes.has(res.id) || res.id === 'index' || res.id === 'decisions') return;
+    if (links.nodes.has(res.id) || res.id === 'index' || res.id === 'decisions') return;
     const isDir = res.exists && fs.statSync(res.abs).isDirectory();
-    const node = graph.node(res.id, {
+    const node = links.node(res.id, {
       kind: res.kind,
       label: path.basename(res.abs) + (isDir ? '/' : ''),
       path: repoRel(res.abs),
@@ -201,7 +201,7 @@ function build({ contextDir, repoRoot, output, title }) {
     }
   };
 
-  // A rendering context records every reference it renders as a graph edge.
+  // A rendering context records every reference it renders as a link between pages.
   const makeCtx = (fromId, fromFile) => ({
     fromId,
     fromFile,
@@ -215,12 +215,12 @@ function build({ contextDir, repoRoot, output, title }) {
         const key = `${fromId}\u0001${res.abs}`;
         if (!brokenSeen.has(key)) {
           brokenSeen.add(key);
-          warn(`<a href="#/n/${encodeURIComponent(fromId)}">${esc(graph.nodes.get(fromId)?.label ?? fromId)}</a> references <code>${esc(repoRel(res.abs))}</code>, which does not exist.`);
+          warn(`<a href="#/n/${encodeURIComponent(fromId)}">${esc(links.nodes.get(fromId)?.label ?? fromId)}</a> references <code>${esc(repoRel(res.abs))}</code>, which does not exist.`);
         }
       }
       if (res.id === 'index' || res.id === 'decisions' || fromId === null) return;
-      if (this.edgeType === 'superseded-by') graph.edge(res.id, fromId, 'supersedes', this.evidence);
-      else graph.edge(fromId, res.id, this.edgeType, this.evidence);
+      if (this.edgeType === 'superseded-by') links.edge(res.id, fromId, 'supersedes', this.evidence);
+      else links.edge(fromId, res.id, this.edgeType, this.evidence);
     },
   });
   // Renders without recording edges, for content shown twice.
@@ -233,7 +233,7 @@ function build({ contextDir, repoRoot, output, title }) {
     const src = stripComments(read(abs));
     rawText[id] = src;
     const meta = docMeta(src, fallbackTitle);
-    graph.node(id, { kind, label: meta.title, path: repoRel(abs) });
+    links.node(id, { kind, label: meta.title, path: repoRel(abs) });
     const ctx = makeCtx(id, abs);
     const sections = splitSections(meta.body);
     const claims = { behavior: 0, requirement: 0, proposal: 0, question: 0, decision: 0 };
@@ -337,15 +337,15 @@ function build({ contextDir, repoRoot, output, title }) {
 
   // Plain-text mentions of decision titles, when no link already connects them.
   for (const [id, text] of Object.entries(rawText)) {
-    if (!graph.nodes.has(id)) continue;
+    if (!links.nodes.has(id)) continue;
     const lower = text.toLowerCase();
     for (const entry of decisionLog.entries) {
       if (entry.id === id || entry.title.length < 8) continue;
       const at = lower.indexOf(entry.title.toLowerCase());
-      if (at < 0 || graph.connected(id, entry.id)) continue;
+      if (at < 0 || links.connected(id, entry.id)) continue;
       const lineStart = text.lastIndexOf('\n', at) + 1;
       const lineEnd = text.indexOf('\n', at);
-      graph.edge(id, entry.id, 'mentions', plainEvidence(text.slice(lineStart, lineEnd < 0 ? undefined : lineEnd)));
+      links.edge(id, entry.id, 'mentions', plainEvidence(text.slice(lineStart, lineEnd < 0 ? undefined : lineEnd)));
     }
   }
 
@@ -371,9 +371,10 @@ function build({ contextDir, repoRoot, output, title }) {
     questions,
     background,
     diagnostics: diagnostics.sort((a, b) => levelRank(a.level) - levelRank(b.level)),
-    graph: {
-      nodes: [...graph.nodes.values()],
-      edges: [...graph.edges.values()],
+    // Pages and the links between them, for each page's Connections list.
+    links: {
+      nodes: [...links.nodes.values()],
+      edges: [...links.edges.values()],
     },
     stats: {
       topics: orderedTopics.length,
@@ -384,7 +385,7 @@ function build({ contextDir, repoRoot, output, title }) {
   };
 }
 
-class Graph {
+class LinkIndex {
   constructor() {
     this.nodes = new Map();
     this.edges = new Map();
@@ -709,7 +710,7 @@ function renderPage(data) {
 <div class="app" id="app">
   <aside class="sidebar" id="sidebar">
     <a class="brand" href="#/">
-      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="6" cy="7" r="2.6"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="17" r="3"/><path d="M8.3 8.4 10.6 14.4M16.6 7.5 13.6 14.6M8.5 6.8 16 6.2"/></svg></span>
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 21 8l-9 5-9-5z"/><path d="m3 12.5 9 5 9-5M3 16.5l9 5 9-5" fill="none"/></svg></span>
       <span class="brand-text"><span class="brand-title">${esc(data.title)}</span><span class="brand-sub">${esc(data.contextPath)}</span></span>
     </a>
     <label class="search">
@@ -728,25 +729,7 @@ function renderPage(data) {
     </footer>
   </aside>
   <main class="main" id="main"><article class="page" id="page"></article></main>
-  <section class="graph-panel" id="graph-panel" aria-label="Context graph">
-    <header class="graph-head">
-      <h2>Context graph</h2>
-      <div class="graph-actions">
-        <button class="chip-btn" id="graph-focus" type="button" aria-pressed="false" title="Show only the selected node and its neighbors">Focus</button>
-        <button class="icon-btn" id="graph-fit" type="button" title="Fit to view" aria-label="Fit to view"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
-        <button class="icon-btn" id="graph-expand" type="button" title="Expand graph" aria-label="Expand graph"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></button>
-      </div>
-    </header>
-    <div class="graph-filters" id="graph-filters"></div>
-    <div class="graph-canvas" id="graph-canvas">
-      <svg id="graph" role="img" aria-label="Graph of topics, decisions, and references"></svg>
-      <div class="graph-tip" id="graph-tip" hidden></div>
-      <div class="graph-empty" id="graph-empty" hidden>No connections recorded yet. Links between topics, decisions, and files appear here.</div>
-    </div>
-    <footer class="graph-legend" id="graph-legend"></footer>
-  </section>
 </div>
-<button class="graph-toggle" id="graph-toggle" type="button">Graph</button>
 <script type="application/json" id="context-data">${json}</script>
 <script>${js}</script>
 </body>
