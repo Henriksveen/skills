@@ -2,7 +2,7 @@
 
 A user-controlled record of project context in `.context/`. Many tasks and threads can load it. You choose which explanations, discoveries, ideas, and decisions to save.
 
-The skill supports `init`, `load`, `add`, and `suggest`. Exploration happens in ordinary conversations. There is no automatic note-taking or exploration lifecycle.
+The skill supports `init`, `load`, `add`, `suggest`, and `render`. Exploration happens in ordinary conversations. There is no automatic note-taking or exploration lifecycle.
 
 ## Requests
 
@@ -16,6 +16,7 @@ These are natural-language requests, not registered slash commands. Explicitly r
 | `Add to context: ...` | Integrates the requested information with its type and source. |
 | `Use the context skill to save the background I explained earlier` | Extracts the requested background from the available conversation and saves it. |
 | `Use the context skill to suggest what is worth saving from this conversation` | Proposes additions in the reply. Writes nothing until you select them. |
+| `Render context` | Writes an HTML report of `.context/` with a context graph. Changes no context files. |
 
 An invocation authorizes only the requested operation. `Load context` never grants permission to save later findings. You can edit the markdown files yourself too.
 
@@ -133,6 +134,44 @@ Weeks later:
 > Load context for implementing offline sync.
 
 The new thread gets the project overview, relevant sync background, the rate limit, and the decision with its reason. It reports what it loaded and distinguishes saved plans from verified code behavior.
+
+## HTML report and context graph
+
+`skills/context/scripts/render.mjs` turns a `.context/` folder into one HTML file. Ask an agent to `render context`, or run the script yourself from the project root with Node 18 or newer:
+
+```sh
+node .agents/skills/context/scripts/render.mjs
+node .agents/skills/context/scripts/render.mjs --input .context --output docs/context.html --title "Notes"
+```
+
+Use `~/.agents/skills/...` for a global install. The script has no dependencies. It writes `context-report.html` by default and refuses to write inside `.context/`, because the Markdown files remain the source of truth. The report embeds its styles, scripts, data, and images, so it opens offline and can be shared as a snapshot. Rerun the script after the context changes.
+
+The report contains:
+
+- An overview page with the project overview, topic cards, recent decisions, and other background from the index.
+- Topic pages. Claims are colored by type, and "Verified", "Unverified", and "not chosen" labels are highlighted.
+- A decision log with accepted and superseded status. Each decision page repeats that accepted does not mean implemented.
+- All open questions, grouped by file.
+- Diagnostics for missing core files, broken references, topics missing from the index, and decisions without a status or reason. The script also prints them.
+- Search across all pages. Press `/` to focus it.
+- Light and dark themes, and a print layout.
+
+### The graph
+
+Nodes are the overview, topics, individual decision entries, other context documents, assets, and repository files that the context references. Clicking a node opens its page, and opening a page selects its node. Each page ends with a Connections list that shows the passage behind every link.
+
+Edges come only from what the files record:
+
+| Edge | Source |
+| --- | --- |
+| References | A Markdown link or a plain repo path, such as `api/routes/notes.ts`, in any context file. |
+| Related context | A decision's `Related context:` field. |
+| Supersedes | A decision's `Replaces:` or `Superseded by:` field. |
+| Mentions | A file that names a decision's title without linking to it. |
+
+Links from the index to its topics are left out, because they would connect the index to everything. A link to `.context/decisions.md#<heading-anchor>` points at that decision entry. A link to a missing file shows as a dashed red node and a diagnostic.
+
+You can filter node types, drag nodes, zoom, and pan. Focus shows only the selected node and its neighbors. The expand button gives the graph the full window.
 
 ## Corrections and existing context
 

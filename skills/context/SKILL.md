@@ -1,15 +1,15 @@
 ---
 name: context
-description: Stores and retrieves user-controlled project context in .context/, including an overview, topic files, and a decisions log. Keeps current behavior, requirements, proposals, open questions, and decisions separate, with sources. Use ONLY when the user explicitly requests the context skill, for example "init context", "load context", "add to context", or "suggest context to save". Never invoke it merely because a thread explores an idea.
+description: Stores and retrieves user-controlled project context in .context/, including an overview, topic files, and a decisions log. Keeps current behavior, requirements, proposals, open questions, and decisions separate, with sources. Renders the folder as an HTML report with a context graph. Use ONLY when the user explicitly requests the context skill, for example "init context", "load context", "add to context", "suggest context to save", or "render context". Never invoke it merely because a thread explores an idea.
 ---
 
 `.context/` holds project context that tasks and threads share.
 
 ## Choose the operation
 
-Use the user's intent to select `init`, `load`, `add`, or `suggest`. If no operation is clear, ask what they want to do before proceeding. `suggest` can accompany any operation. Run it after the other operation finishes, so it compares the conversation with the current context.
+Use the user's intent to select `init`, `load`, `add`, `suggest`, or `render`. If no operation is clear, ask what they want to do before proceeding. `suggest` can accompany any operation. Run it after the other operation finishes, so it compares the conversation with the current context.
 
-Only `init` and an explicit `add` request authorize their described writes. Permission ends when that operation finishes. `load`, `suggest`, review, and agreement with an idea are read-only. Reading through an AGENTS.md reference does not invoke the skill or authorize edits.
+Only `init` and an explicit `add` request authorize their described writes. Permission ends when that operation finishes. `load`, `suggest`, review, and agreement with an idea are read-only. `render` reads `.context/` and writes only the report file outside it. Reading through an AGENTS.md reference does not invoke the skill or authorize edits.
 
 The user chooses what to retain and which outcomes to accept. Manage only the project context files in the layout below, plus the AGENTS.md setup described in `init`. Links to other documents authorize reading them, not editing them. Keep exploration notes and conversation transcripts out of saved context.
 
@@ -122,6 +122,21 @@ For `Review this conversation and suggest what would be useful as project contex
    ```
 
    Complete when the reply contains every candidate's required fields or states that none are needed. Wait for the user's selection. Handle a request to save selected candidates as an `add` operation.
+
+## render
+
+Examples: `render context` or `render context to docs/context.html`.
+
+1. Run [scripts/render.mjs](scripts/render.mjs) with Node 18 or newer from the repository root. Pass `--output` when the user names a path; otherwise the script writes `context-report.html`. The script refuses to write inside `.context/`. Run `node scripts/render.mjs --help` for other options.
+
+   ```sh
+   node <skill-dir>/scripts/render.mjs --input .context --output context-report.html
+   ```
+
+   Complete when the script reports the written file, or its error has been reported to the user.
+2. Report the output path and the counts the script prints. If it found diagnostics, such as broken references or topics missing from the index, summarize them. Do not fix them without an `add` request. Do not commit or ignore the report file unless the user asks.
+
+   Complete when the reply gives the path and accounts for every diagnostic.
 
 ## Claim types and sources
 
