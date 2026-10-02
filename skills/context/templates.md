@@ -93,10 +93,6 @@ Updated: YYYY-MM-DD
 - Batching might reduce rate-limit errors. Unverified hypothesis. Source: discussion, YYYY-MM-DD.
 -->
 
-## Open questions
-
-<!-- Questions that remain unresolved. -->
-
 ## Related decisions
 
 <!-- Links to relevant headings in .context/decisions.md. Do not duplicate full entries. -->
@@ -138,10 +134,6 @@ Example: The app must run on the current company laptop image. Source: user-prov
 <!-- User intentions or accepted decisions. A planned change is not implemented behavior. Link to detail.
 Example: Offline editing is planned. See .context/topics/sync.md. Implementation status not established.
 -->
-
-## Open questions
-
-- What project context should new threads know? Not yet provided.
 ```
 
 ## AGENTS.md snippet
@@ -151,13 +143,13 @@ Example: Offline editing is planned. See .context/topics/sync.md. Implementation
 
 Shared project context lives in `.context/`. When a task needs it, read `.context/index.md` and `.context/overview.md`, then load relevant topics, decisions, and linked material. Report missing core files rather than creating them during a read.
 
-Distinguish current behavior, requirements and preferences, proposals and hypotheses, open questions, and decisions. A proposal is not a decision; an accepted decision is not evidence of implementation. Report apparent disagreements with code instead of silently rewriting context.
+Distinguish current behavior, requirements and preferences, proposals and hypotheses, and decisions. A proposal is not a decision; an accepted decision is not evidence of implementation. Report apparent disagreements with code instead of silently rewriting context.
 
 Only invoke the context skill when the user requests it. Writes to the project context files listed in `.context/index.md` require an explicit init or add request for that operation. Loading, reviewing, or suggesting context never authorizes writes or ongoing note-taking. Links to supporting documents do not authorize edits to those documents.
 
 If you discover useful new context, you may suggest it in your reply:
 
-Context candidate: <text to save>. Type: <current behavior, requirement or preference, proposal or hypothesis, open question, or decision>. Source: <code path, document, user statement, or conversation, with date>. Target: <project context file>.
+Context candidate: <text to save>. Type: <current behavior, requirement or preference, proposal or hypothesis, or decision>. Source: <code path, document, user statement, or conversation, with date>. Target: <project context file>.
 
 Do not save the candidate unless the user explicitly asks. Avoid repeating suggestions.
 ```

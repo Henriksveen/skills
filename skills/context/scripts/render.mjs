@@ -28,7 +28,6 @@ const SECTION_TYPES = [
   [/current behaviou?r|current state/i, 'behavior'],
   [/requirement|preference|constraint/i, 'requirement'],
   [/proposal|hypothes|idea/i, 'proposal'],
-  [/open question|question/i, 'question'],
   [/decision/i, 'decision'],
 ];
 
@@ -83,7 +82,7 @@ function main() {
   const s = data.stats;
   console.log(
     `Wrote ${path.relative(process.cwd(), output) || output}: ${s.topics} topics, ${s.decisions} decisions, ` +
-    `${s.questions} open questions, ${data.diagnostics.length} diagnostics.`,
+    `${data.diagnostics.length} diagnostics.`,
   );
   for (const d of data.diagnostics) {
     const text = d.message.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
@@ -236,24 +235,19 @@ function build({ contextDir, repoRoot, output, title }) {
     links.node(id, { kind, label: meta.title, path: repoRel(abs) });
     const ctx = makeCtx(id, abs);
     const sections = splitSections(meta.body);
-    const claims = { behavior: 0, requirement: 0, proposal: 0, question: 0, decision: 0 };
-    const questions = [];
+    const claims = { behavior: 0, requirement: 0, proposal: 0, decision: 0 };
     let html = blocks(sections.preamble, ctx);
     for (const sec of sections.list) {
       const type = classifySection(sec.heading);
       const items = topLevelItems(sec.body);
       if (type) claims[type] += items.length;
-      if (type === 'question') {
-        const q = quietCtx(abs);
-        for (const item of items) questions.push(inline(item, q));
-      }
       const body = blocks(sec.body, ctx);
       html += `<section class="sec${type ? ` claims t-${type}` : ''}" id="${attr(slug(sec.heading))}">` +
         `<h2>${inline(sec.heading, quietCtx(abs))}${type && items.length ? `<span class="count">${items.length}</span>` : ''}</h2>` +
         (body.trim() ? (type ? tagClaims(body) : body) : '<p class="empty">Nothing recorded yet.</p>') +
         '</section>';
     }
-    pages[id] = { id, kind, title: meta.title, updated: meta.updated, path: repoRel(abs), html, claims, questions };
+    pages[id] = { id, kind, title: meta.title, updated: meta.updated, path: repoRel(abs), html, claims };
     return pages[id];
   };
 
@@ -349,12 +343,6 @@ function build({ contextDir, repoRoot, output, title }) {
     }
   }
 
-  const questions = [];
-  for (const id of ['overview', ...orderedTopics, ...Object.keys(pages).filter((k) => k.startsWith('doc:'))]) {
-    const p = pages[id];
-    if (p?.questions?.length) questions.push({ id, title: p.title, kind: p.kind, items: p.questions });
-  }
-
   const decisionIds = decisionLog.entries.map((e) => e.id);
   const overviewTitle = pages.overview?.title;
   return {
@@ -368,7 +356,6 @@ function build({ contextDir, repoRoot, output, title }) {
     decisions: decisionIds,
     decisionsIntro,
     decisionsUpdated: decisionsMeta.updated,
-    questions,
     background,
     diagnostics: diagnostics.sort((a, b) => levelRank(a.level) - levelRank(b.level)),
     // Pages and the links between them, for each page's Connections list.
@@ -380,7 +367,6 @@ function build({ contextDir, repoRoot, output, title }) {
       topics: orderedTopics.length,
       decisions: decisionIds.length,
       accepted: decisionLog.entries.filter((e) => e.status === 'accepted').length,
-      questions: questions.reduce((n, q) => n + q.items.length, 0),
     },
   };
 }

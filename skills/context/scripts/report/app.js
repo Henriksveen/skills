@@ -18,7 +18,6 @@
     ['behavior', 'Current behavior'],
     ['requirement', 'Requirements'],
     ['proposal', 'Proposals'],
-    ['question', 'Open questions'],
   ];
   const EDGE_LABELS = {
     references: ['References', 'Referenced by'],
@@ -29,7 +28,6 @@
   const ICONS = {
     home: '<path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>',
     decisions: '<path d="M5 4h14v16H5z"/><path d="m9 12 2 2 4-4"/>',
-    questions: '<circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.4"/><circle cx="12" cy="16.8" r=".4"/>',
     diagnostics: '<path d="M12 4 2.8 19.5h18.4z"/><path d="M12 10v4"/><circle cx="12" cy="16.9" r=".4"/>',
   };
   const icon = (name) => `<svg class="nav-icon" viewBox="0 0 24 24">${ICONS[name]}</svg>`;
@@ -130,7 +128,6 @@
     html += `<div class="stats">
       <a class="stat" href="#topics"><span class="stat-n">${st.topics}</span><span class="stat-l">Topics</span></a>
       <a class="stat" href="#/decisions"><span class="stat-n">${st.decisions}</span><span class="stat-l">Decisions, ${st.accepted} accepted</span></a>
-      <a class="stat" href="#/questions"><span class="stat-n">${st.questions}</span><span class="stat-l">Open questions</span></a>
       <a class="stat ${diagClass}" href="#/diagnostics"><span class="stat-n">${D.diagnostics.length}</span><span class="stat-l">Diagnostics</span></a>
     </div>`;
 
@@ -223,16 +220,6 @@
       (D.decisions.length ? '<ul class="timeline">' + D.decisions.map(decisionCard).join('') + '</ul>' : '<p class="empty">No decisions recorded yet.</p>');
   }
 
-  function questionsPage() {
-    const total = D.stats.questions;
-    let html = head({ eyebrow: 'Open questions', title: 'Unresolved questions', sub: `${total} open question${total === 1 ? '' : 's'} across ${D.questions.length} file${D.questions.length === 1 ? '' : 's'}.` });
-    if (!D.questions.length) return html + '<p class="empty">No open questions recorded.</p>';
-    for (const g of D.questions) {
-      html += `<section class="qgroup"><h2><a href="${href(g.id)}">${esc(g.title)}</a><span class="count t-question">${g.items.length}</span></h2><ul class="qlist">${g.items.map((q) => `<li>${q}</li>`).join('')}</ul></section>`;
-    }
-    return html;
-  }
-
   function diagnosticsPage() {
     let html = head({ eyebrow: 'Diagnostics', title: 'Context health', sub: 'Missing files, broken references, and gaps found while reading the context folder.' });
     if (!D.diagnostics.length) return html + '<div class="ok">No problems found.</div>';
@@ -253,14 +240,12 @@
     let html = '<div class="nav-group">';
     html += item('#/', 'Overview', '', icon('home'));
     html += item('#/decisions', 'Decisions', `<span class="badge">${D.decisions.length}</span>`, icon('decisions'));
-    html += item('#/questions', 'Open questions', `<span class="badge">${D.stats.questions}</span>`, icon('questions'));
     html += item('#/diagnostics', 'Diagnostics', `<span class="badge${warnings ? ' warn' : ''}">${D.diagnostics.length}</span>`, icon('diagnostics'));
     html += '</div>';
     if (D.topics.length) {
       html += '<div class="nav-group"><div class="nav-label">Topics</div>';
       for (const id of D.topics) {
-        const q = D.pages[id].claims?.question || 0;
-        html += item(href(id), esc(D.pages[id].title), q ? `<span class="badge" title="${q} open question${q === 1 ? '' : 's'}">${q} open</span>` : '', '<span class="dot k-topic"></span>');
+        html += item(href(id), esc(D.pages[id].title), '', '<span class="dot k-topic"></span>');
       }
       html += '</div>';
     }
@@ -278,7 +263,6 @@
     let html;
     if (hash === '/' || hash === '') html = homePage();
     else if (hash === '/decisions') html = decisionsPage();
-    else if (hash === '/questions') html = questionsPage();
     else if (hash === '/diagnostics') html = diagnosticsPage();
     else if (hash.startsWith('/n/')) {
       const id = hash.slice(3);

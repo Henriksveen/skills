@@ -151,7 +151,6 @@ The report contains:
 - An overview page with the project overview, topic cards, recent decisions, and other background from the index.
 - Topic pages. Claims are colored by type, and "Verified", "Unverified", and "not chosen" labels are highlighted.
 - A decision log with accepted and superseded status. Each decision page repeats that accepted does not mean implemented.
-- All open questions, grouped by file.
 - Diagnostics for missing core files, broken references, topics missing from the index, and decisions without a status or reason. The script also prints them.
 - Search across all pages. Press `/` to focus it.
 - Light and dark themes, and a print layout.

@@ -1,6 +1,6 @@
 ---
 name: context
-description: Stores and retrieves user-controlled project context in .context/, including an overview, topic files, and a decisions log. Keeps current behavior, requirements, proposals, open questions, and decisions separate, with sources. Renders the folder as a browsable HTML report. Use ONLY when the user explicitly requests the context skill, for example "init context", "load context", "add to context", "suggest context to save", or "render context". Never invoke it merely because a thread explores an idea.
+description: Stores and retrieves user-controlled project context in .context/, including an overview, topic files, and a decisions log. Keeps current behavior, requirements, proposals, and decisions separate, with sources. Renders the folder as a browsable HTML report. Use ONLY when the user explicitly requests the context skill, for example "init context", "load context", "add to context", "suggest context to save", or "render context". Never invoke it merely because a thread explores an idea.
 ---
 
 `.context/` holds project context that tasks and threads share.
@@ -118,7 +118,6 @@ For `Review this conversation and suggest what would be useful as project contex
    ```text
    1. The API limits each user to 100 requests per minute. Type: current behavior, verified YYYY-MM-DD. Source: api/middleware/rate-limit.ts, rateLimit. Target: .context/topics/sync.md.
    2. A local edit queue could support offline edits by replaying requests when online. Type: proposal, not chosen. Source: conversation summary, YYYY-MM-DD. Target: .context/topics/sync.md.
-   3. Should queued edits expire after a period offline? Type: open question. Source: conversation, YYYY-MM-DD. Target: .context/topics/sync.md.
    ```
 
    Complete when the reply contains every candidate's required fields or states that none are needed. Wait for the user's selection. Handle a request to save selected candidates as an `add` operation.
@@ -145,7 +144,7 @@ Use sections or short labels within topics, not separate operations:
 - Current behavior: call implementation claims verified only with evidence. Mark user-reported behavior unverified against code when not checked.
 - Requirements and preferences: user-provided constraints or intentions. Record them without requiring code proof or implying implementation.
 - Proposals and hypotheses: possibilities under consideration, not decisions or implemented behavior. Mark hypotheses unverified.
-- Open questions: matters that remain unresolved. Keep unknown information explicit here.
+- Unknowns: do not save open questions. State unknown information inline beside the claim it affects, for example "Implementation status not established."
 - Decisions: explicit user choices linked to `decisions.md`. An accepted decision does not prove implementation.
 
 Keep origin information next to the claim: a code path and symbol, a document or asset, a user-provided requirement, or a dated conversation summary. Include verification dates for code or measurements. Add thread links only when available; do not invent them. A file's update date is not the verification date of every claim in it.
